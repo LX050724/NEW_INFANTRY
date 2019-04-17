@@ -34,4 +34,4 @@ JLinkLog.txt
 
 *.tem
 *.temp
-00.jscope
+*.jscope
