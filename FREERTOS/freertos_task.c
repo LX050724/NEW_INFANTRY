@@ -230,11 +230,23 @@ void PID_task2(void *pvParameters)
 	
 	int16_t RM3510_buff[4] = {0,0,0,0};
 	Chassis_Speed_Ref_Init();
+	
+	float Twistvalue = 0;
+	float Twistadd = 0;
+	
 	for(;;)
 	{
 		///×ËÌ¬PID////////////////////////////////////////////////////////////
+		
+		//Å¤Ñü
+		if((Twist == 1)||(fabsf(Twistvalue) > 50.0f))
+		{
+			Twistvalue = sin(Twistadd) * 500;
+			Twistadd += 0.03f;
+		}
+		
 		PID_Control(GM3510_Actual.PTZ_Motor_Actual_Angle_1,
-								PTZ_X_median,
+								PTZ_X_median + Twistvalue,
 								&Chassis_PID);
 																
 		Chassis_Speed_Ref.rotate_ref=Chassis_PID.pid_out*-3;

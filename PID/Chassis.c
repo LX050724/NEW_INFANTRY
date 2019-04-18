@@ -37,16 +37,23 @@ void PTZ_PID_Expect(void) //得到云台电机所期望的角度
 
 void PID_Expect(void) //得到底盘电机所期望的速度
 {
+	float angle = (PTZ_X_median - GM3510_Actual.PTZ_Motor_Actual_Angle_1)/1303.88f;
+	
+	int16_t forward_back = 0;
+	int16_t left_right = 0;
+	
+	forward_back = Chassis_Speed_Ref.forward_back_ref * cosf(angle) + Chassis_Speed_Ref.left_right_ref * sinf(angle);
+	left_right = Chassis_Speed_Ref.forward_back_ref * sinf(angle) + Chassis_Speed_Ref.left_right_ref * cosf(angle);
 
-	RM3510_PID_Expect.Chassis_Motor_PID_Expect_1 = -Chassis_Speed_Ref.forward_back_ref -
-												   Chassis_Speed_Ref.left_right_ref + Chassis_Speed_Ref.rotate_ref;
+	RM3510_PID_Expect.Chassis_Motor_PID_Expect_1 = -forward_back -
+												   left_right + Chassis_Speed_Ref.rotate_ref;
 
-	RM3510_PID_Expect.Chassis_Motor_PID_Expect_2 = Chassis_Speed_Ref.forward_back_ref -
-												   Chassis_Speed_Ref.left_right_ref + Chassis_Speed_Ref.rotate_ref;
+	RM3510_PID_Expect.Chassis_Motor_PID_Expect_2 = forward_back -
+												   left_right + Chassis_Speed_Ref.rotate_ref;
 
-	RM3510_PID_Expect.Chassis_Motor_PID_Expect_4 = Chassis_Speed_Ref.forward_back_ref +
-												   Chassis_Speed_Ref.left_right_ref + Chassis_Speed_Ref.rotate_ref;
+	RM3510_PID_Expect.Chassis_Motor_PID_Expect_4 = forward_back +
+												   left_right + Chassis_Speed_Ref.rotate_ref;
 
-	RM3510_PID_Expect.Chassis_Motor_PID_Expect_3 = -Chassis_Speed_Ref.forward_back_ref +
-												   Chassis_Speed_Ref.left_right_ref + Chassis_Speed_Ref.rotate_ref;
+	RM3510_PID_Expect.Chassis_Motor_PID_Expect_3 = -forward_back +
+												   left_right + Chassis_Speed_Ref.rotate_ref;
 }

@@ -6,9 +6,11 @@ unsigned char s1_flag1, s1_flag2;
 unsigned char Friction_wheel;
 
 unsigned short mousepL_flag, mousepR_flag;
-u8 down_play_flag = 1, down_FB_flag = 1, down_RL_flag = 1;
-u8 play_flag = 1, FB_flag = 1, RL_flag = 1, rr_flag = 1;
+uint8_t down_play_flag = 1, down_FB_flag = 1, down_RL_flag = 1;
+uint8_t play_flag = 1, FB_flag = 1, RL_flag = 1, rr_flag = 1;
 int16_t FB_SD, RL_SD;
+
+uint8_t Twist = 0;
 
 static InputMode_e inputmode = REMOTE_INPUT; //输入模式设定
 RC_Ctl_t RC_CtrlData = {.rc = {1024,1024,1024,1024,3,1}};												 //remote control data
@@ -179,6 +181,19 @@ void MouseKeyControlProcess(Mouse *mouse, Key *key)
 		GM3510_Ref.y += mouse->y* MOUSE_TO_PITCH_ANGLE_INC_FACT;
 	if ((GM3510_Ref.y < PTZ_Y_MIN) && ((mouse->y* MOUSE_TO_PITCH_ANGLE_INC_FACT) > 0))
 		GM3510_Ref.y += mouse->y* MOUSE_TO_PITCH_ANGLE_INC_FACT;
+	///其他控制///////////////////////////////////////////////////////////
+	
+	///扭腰E//////////////////////////////////////////////////////////////
+	static uint8_t Key_E_falg = 0;
+	if(key->v & Key_E)
+	{
+		if(Key_E_falg == 0)
+		{
+			Key_E_falg = 1;
+			if(Twist == 0)Twist = 1;
+			else Twist = 0;
+		}
+	}else Key_E_falg = 0;
 	
 }
 /*遥控器控制函数*/

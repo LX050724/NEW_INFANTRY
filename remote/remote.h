@@ -21,6 +21,15 @@
 #define STICK_TO_PITCH_ANGLE_INC_FACT 0.0015f
 #define STICK_TO_YAW_ANGLE_INC_FACT 0.0045f
 #define FRICTION_WHEEL_MAX_DUTY 1600
+	
+#define Key_W 0x01
+#define Key_A 0x04
+#define Key_S 0x02
+#define Key_D 0x08
+#define Key_Q 0x40
+#define Key_E 0x80
+#define Key_Ctrl 0x20
+#define Key_Shift 0x10
 
 typedef __packed struct
 {
@@ -73,6 +82,8 @@ typedef enum
 } InputMode_e;
 
 void Remote_Rx(unsigned char *RxMsg);
+
+extern uint8_t Twist;
 
 extern RC_Ctl_t RC_CtrlData;
 
