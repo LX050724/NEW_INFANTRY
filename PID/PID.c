@@ -94,13 +94,8 @@ void PID_Init(void)
 	GM3510_1_SpeedPID.error_now = 0;
 	GM3510_1_SpeedPID.Kd = 0;
 	GM3510_1_SpeedPID.Ki = 0;
-<<<<<<< HEAD
-	GM3510_1_SpeedPID.Kp = 3;
-	/***************??????2λ??PID*****************/
-=======
 	GM3510_1_SpeedPID.Kp = 4;
 	/***************云台电机2位置PID*****************/
->>>>>>> 3dedb6c2c1056381a317288f3decc7be52fa07bc
 	GM3510_2_AnglePID.error_inter = 0;
 	GM3510_2_AnglePID.error_last = 0;
 	GM3510_2_AnglePID.error_now = 0;
@@ -113,25 +108,15 @@ void PID_Init(void)
 	GM3510_2_SpeedPID.error_now = 0;
 	GM3510_2_SpeedPID.Kd = 0.03;
 	GM3510_2_SpeedPID.Ki = 0;
-<<<<<<< HEAD
-	GM3510_2_SpeedPID.Kp = 3;
-	/***************???????PID******************/
-=======
 	GM3510_2_SpeedPID.Kp = 4;
 	/***************车身姿态PID******************/
->>>>>>> 3dedb6c2c1056381a317288f3decc7be52fa07bc
 	Chassis_PID.error_inter = 0;
 	Chassis_PID.error_last = 0;
 	Chassis_PID.error_now = 0;
 	Chassis_PID.Kd = 20;
 	Chassis_PID.Ki = 0;
-<<<<<<< HEAD
-	Chassis_PID.Kp = 1.8;
-	/***************???????PID******************/
-=======
 	Chassis_PID.Kp = 1.5;
 	/***************拨弹电机PID******************/
->>>>>>> 3dedb6c2c1056381a317288f3decc7be52fa07bc
 	Pluck_motor_AnglePID.error_inter = 0;
 	Pluck_motor_AnglePID.error_last = 0;
 	Pluck_motor_AnglePID.error_now = 0;
@@ -218,11 +203,7 @@ void PID_DeInit(void)
 	RM3510_4_PID.Kd = 0;
 	RM3510_4_PID.Ki = 0;
 	RM3510_4_PID.Kp = 0;
-<<<<<<< HEAD
-	/***************??????1λ??PID***************/
-=======
 	/***************云台电机1位置PID***************/
->>>>>>> 3dedb6c2c1056381a317288f3decc7be52fa07bc
 	GM3510_1_AnglePID.error_inter = 0;
 	GM3510_1_AnglePID.error_last = 0;
 	GM3510_1_AnglePID.error_now = 0;
