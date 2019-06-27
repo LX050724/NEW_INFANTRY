@@ -17,7 +17,7 @@ PID Chassis_PID;
 
 void PID_Init_MPU(void)
 {
-	/***************‘∆Ã®µÁª˙1Œª÷√PID*****************/
+	/***************‰∫ëÂè∞ÁîµÊú∫1‰ΩçÁΩÆPID*****************/
 	GM3510_1_AnglePID.error_inter = 0;
 	GM3510_1_AnglePID.error_last = 0;
 	GM3510_1_AnglePID.error_now = 0;
@@ -32,7 +32,7 @@ void PID_Init_MPU(void)
 	GM3510_1_SpeedPID.Ki = 0;
 	GM3510_1_SpeedPID.Kp = 1000;
 	
-	/***************‘∆Ã®µÁª˙2Œª÷√PID*****************/
+	/***************‰∫ëÂè∞ÁîµÊú∫2‰ΩçÁΩÆPID*****************/
 	GM3510_2_AnglePID.error_inter = 0;
 	GM3510_2_AnglePID.error_last = 0;
 	GM3510_2_AnglePID.error_now = 0;
@@ -50,7 +50,7 @@ void PID_Init_MPU(void)
 
 void PID_Init(void)
 {
-	/****************µ◊≈ÃµÁª˙ÀŸ∂»PID*****************/
+	/****************Â∫ïÁõòÁîµÊú∫ÈÄüÂ∫¶PID*****************/
 	RM3510_1_PID.error_inter = 0;
 	RM3510_1_PID.error_last = 0;
 	RM3510_1_PID.error_now = 0;
@@ -78,7 +78,7 @@ void PID_Init(void)
 	RM3510_4_PID.Kd = KD;
 	RM3510_4_PID.Ki = KI;
 	RM3510_4_PID.Kp = KP;
-	/***************‘∆Ã®µÁª˙1Œª÷√PID(≥ı ºªØ)***************/
+	/***************‰∫ëÂè∞ÁîµÊú∫1‰ΩçÁΩÆPID(ÂàùÂßãÂåñ)***************/
 	GM3510_1_AnglePID.error_inter = 0;
 	GM3510_1_AnglePID.error_last = 0;
 	GM3510_1_AnglePID.error_now = 0;
@@ -92,7 +92,7 @@ void PID_Init(void)
 	GM3510_1_SpeedPID.Kd = 2;
 	GM3510_1_SpeedPID.Ki = 0;
 	GM3510_1_SpeedPID.Kp = 4;
-	/***************‘∆Ã®µÁª˙2Œª÷√PID*****************/
+	/***************‰∫ëÂè∞ÁîµÊú∫2‰ΩçÁΩÆPID*****************/
 	GM3510_2_AnglePID.error_inter = 0;
 	GM3510_2_AnglePID.error_last = 0;
 	GM3510_2_AnglePID.error_now = 0;
@@ -106,14 +106,14 @@ void PID_Init(void)
 	GM3510_2_SpeedPID.Kd = 5;
 	GM3510_2_SpeedPID.Ki = 0;
 	GM3510_2_SpeedPID.Kp = 4;
-	/***************≥µ…Ì◊ÀÃ¨PID******************/
+	/***************ËΩ¶Ë∫´ÂßøÊÄÅPID******************/
 	Chassis_PID.error_inter = 0;
 	Chassis_PID.error_last = 0;
 	Chassis_PID.error_now = 0;
 	Chassis_PID.Kd = 10;
 	Chassis_PID.Ki = 0;
 	Chassis_PID.Kp = 1.5;
-	/***************≤¶µØµÁª˙PID******************/
+	/***************Êã®ÂºπÁîµÊú∫PID******************/
 	Pluck_motor_AnglePID.error_inter = 0;
 	Pluck_motor_AnglePID.error_last = 0;
 	Pluck_motor_AnglePID.error_now = 0;
@@ -129,7 +129,7 @@ void PID_Init(void)
 	Pluck_motor_SpeedPID.Kp = 3;
 }
 
-void PID_Control(float current /* µº ÷µ*/, float expected /*∆⁄Õ˚÷µ*/, PID *motor_type /*≤Œ ˝*/)
+void PID_Control(float current /*ÂÆûÈôÖÂÄº*/, float expected /*ÊúüÊúõÂÄº*/, PID *motor_type /*ÂèÇÊï∞*/)
 {
 
 	motor_type->error_last = motor_type->error_now;
@@ -146,35 +146,35 @@ void PID_Control(float current /* µº ÷µ*/, float expected /*∆⁄Õ˚÷µ*/, PID *motor
 
 void PID_DeInit(void)
 {
-	/****************µ◊≈ÃµÁª˙ÀŸ∂»PID*****************/
+	/****************Â∫ïÁõòÁîµÊú∫ÈÄüÂ∫¶PID*****************/
 	RM3510_1_PID.error_inter = 0;
 	RM3510_1_PID.error_last = 0;
 	RM3510_1_PID.error_now = 0;
-	RM3510_1_PID.Kd = KD;
-	RM3510_1_PID.Ki = KI;
-	RM3510_1_PID.Kp = KP;
+	RM3510_1_PID.Kd = 0;
+	RM3510_1_PID.Ki = 0;
+	RM3510_1_PID.Kp = 0;
 
 	RM3510_2_PID.error_inter = 0;
 	RM3510_2_PID.error_last = 0;
 	RM3510_2_PID.error_now = 0;
-	RM3510_2_PID.Kd = KD;
-	RM3510_2_PID.Ki = KI;
-	RM3510_2_PID.Kp = KP;
+	RM3510_2_PID.Kd = 0;
+	RM3510_2_PID.Ki = 0;
+	RM3510_2_PID.Kp = 0;
 
 	RM3510_3_PID.error_inter = 0;
 	RM3510_3_PID.error_last = 0;
 	RM3510_3_PID.error_now = 0;
-	RM3510_3_PID.Kd = KD;
-	RM3510_3_PID.Ki = KI;
-	RM3510_3_PID.Kp = KP;
+	RM3510_3_PID.Kd = 0;
+	RM3510_3_PID.Ki = 0;
+	RM3510_3_PID.Kp = 0;
 
 	RM3510_4_PID.error_inter = 0;
 	RM3510_4_PID.error_last = 0;
 	RM3510_4_PID.error_now = 0;
-	RM3510_4_PID.Kd = KD;
-	RM3510_4_PID.Ki = KI;
-	RM3510_4_PID.Kp = KP;
-	/***************‘∆Ã®µÁª˙1Œª÷√PID***************/
+	RM3510_4_PID.Kd = 0;
+	RM3510_4_PID.Ki = 0;
+	RM3510_4_PID.Kp = 0;
+	/***************‰∫ëÂè∞ÁîµÊú∫1‰ΩçÁΩÆPID***************/
 	GM3510_1_AnglePID.error_inter = 0;
 	GM3510_1_AnglePID.error_last = 0;
 	GM3510_1_AnglePID.error_now = 0;
@@ -188,7 +188,7 @@ void PID_DeInit(void)
 	GM3510_1_SpeedPID.Kd = 0;
 	GM3510_1_SpeedPID.Ki = 0;
 	GM3510_1_SpeedPID.Kp = 0;
-	/***************‘∆Ã®µÁª˙2Œª÷√PID*****************/
+	/***************‰∫ëÂè∞ÁîµÊú∫2‰ΩçÁΩÆPID*****************/
 	GM3510_2_AnglePID.error_inter = 0;
 	GM3510_2_AnglePID.error_last = 0;
 	GM3510_2_AnglePID.error_now = 0;
@@ -202,14 +202,14 @@ void PID_DeInit(void)
 	GM3510_2_SpeedPID.Kd = 0;
 	GM3510_2_SpeedPID.Ki = 0;
 	GM3510_2_SpeedPID.Kp = 0;
-	/***************≥µ…Ì◊ÀÃ¨PID******************/
+	/***************ËΩ¶Ë∫´ÂßøÊÄÅPID******************/
 	Chassis_PID.error_inter = 0;
 	Chassis_PID.error_last = 0;
 	Chassis_PID.error_now = 0;
 	Chassis_PID.Kd = 0;
 	Chassis_PID.Ki = 0;
 	Chassis_PID.Kp = 0;
-	/***************≤¶µØµÁª˙PID******************/
+	/***************Êã®ÂºπÁîµÊú∫PID******************/
 	Pluck_motor_AnglePID.error_inter = 0;
 	Pluck_motor_AnglePID.error_last = 0;
 	Pluck_motor_AnglePID.error_now = 0;
