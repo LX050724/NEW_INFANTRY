@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : USART.h
+  * File Name          : ADC.h
   * Description        : This file provides code for the configuration
-  *                      of the USART instances.
+  *                      of the ADC instances.
   ******************************************************************************
   * @attention
   *
@@ -17,8 +17,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __usart_H
-#define __usart_H
+#ifndef __adc_H
+#define __adc_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -27,35 +27,27 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-#include "config.h"
+
 /* USER CODE END Includes */
 
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart6;
+extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
-#define BUFLEN 30
 
 /* USER CODE END Private defines */
 
-void MX_USART1_UART_Init(void);
-void MX_USART2_UART_Init(void);
-void MX_USART3_UART_Init(void);
-void MX_USART6_UART_Init(void);
+void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-  extern unsigned char usart1_dma_buff[BUFLEN];
-  extern uint8_t usart3_dma_buff[USART3_BUFLEN];
-	extern uint8_t usart6_dma_buff[8];
+uint16_t Average(uint16_t * buff,uint16_t in);
+uint16_t Get_Adc(uint32_t ch);
 
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ usart_H */
+#endif /*__ adc_H */
 
 /**
   * @}

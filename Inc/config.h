@@ -16,14 +16,19 @@ typedef enum
 #define SpeedMode 0 /*1拨弹速度模式*/
 #define PTZ_Lock 0  /*1云台锁定开关*/
 
+/*功率*/
+#define CHASSIS_FEEDBACK         2        //1启用裁判系统    2 启用电流计  0 不启用功率闭环
+#define POWER_LIMIT_VALUE      	 68       //高速模式下的功率
+
+
 /*云台*/
-#define PTZ_X_median 6190
-#define PTZ_Y_median 1433
+#define PTZ_X_median 6110
+#define PTZ_Y_median 3290
 
-#define PTZ_Y_MAX 1000
-#define PTZ_Y_MIN 1900
+#define PTZ_Y_MAX 2700
+#define PTZ_Y_MIN 3500
 
-#define PTZ_X_LIMIT 1200
+#define PTZ_X_LIMIT 1500
 
 /*摇杆灵敏度*/
 #define Sensitivity_X -0.004f

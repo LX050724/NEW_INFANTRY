@@ -43,7 +43,7 @@ void MX_CAN1_Init(void)
   hcan1.Init.AutoWakeUp = DISABLE;
   hcan1.Init.AutoRetransmission = DISABLE;
   hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = DISABLE;
+  hcan1.Init.TransmitFifoPriority = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     Error_Handler();
@@ -115,15 +115,23 @@ uint8_t CAN1_Send_Msg(uint32_t StdId, uint8_t *msg)
   CAN_Tx.StdId = StdId;      //标准标识符
   CAN_Tx.IDE = CAN_ID_STD;   //使用标准帧
   CAN_Tx.RTR = CAN_RTR_DATA; //数据帧
-  CAN_Tx.DLC = 0x08;
-
-  if (HAL_CAN_AddTxMessage(&hcan1, &CAN_Tx, msg, (uint32_t *)CAN_TX_MAILBOX0) == HAL_OK)return 1;
+  CAN_Tx.DLC = 8;
+	switch (StdId)
+	{
+		case 0x200:
+			HAL_CAN_AddTxMessage(&hcan1, &CAN_Tx, msg, (uint32_t *)CAN_TX_MAILBOX1);
+			break;
+		case 0x1ff:
+			HAL_CAN_AddTxMessage(&hcan1, &CAN_Tx, msg, (uint32_t *)CAN_TX_MAILBOX0);
+			break;
+	}
+  
   return 0;
 }
 
 uint8_t CAN1_Receive_Msg(uint8_t *buf)
 {
-  HAL_CAN_GetRxMessage(&hcan1, CAN_FilterFIFO0, &CAN_Rx, buf);
+	HAL_CAN_GetRxMessage(&hcan1, CAN_FilterFIFO0, &CAN_Rx, buf);
   return CAN_Rx.DLC;
 }
 /* USER CODE END 1 */

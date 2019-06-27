@@ -19,6 +19,9 @@ void StartTask(void)
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 	HAL_UART_Receive_DMA(&huart1, usart1_dma_buff, BUFLEN);
 	
+	__HAL_UART_ENABLE(&huart6);
+	HAL_UART_Receive_DMA(&huart6, usart6_dma_buff,8);
+	
 	HAL_TIM_Base_Start(&htim5);
 	HAL_TIM_Base_Start(&htim7);
 	
@@ -27,9 +30,27 @@ void StartTask(void)
 	PID_Init();
 	Chassis_Speed_Ref_Init();
 	/*模块初始化*/
+	
+	
+//	uint8_t msg[8] = {0x13,0xff,0x13,0xff,0x13,0xff,0x13,0xff};
+//	CAN_Tx.StdId = 0x200;      //标准标识符
+//  CAN_Tx.IDE = CAN_ID_STD;   //使用标准帧
+//  CAN_Tx.RTR = CAN_RTR_DATA; //数据帧
+//  CAN_Tx.DLC = 8;
+//	HAL_CAN_AddTxMessage(&hcan1, &CAN_Tx, msg, (uint32_t *)CAN_TX_MAILBOX1);
+		
+
 
 	/*创建任务*/
-
+#if CHASSIS_FEEDBACK != 0
+	//电流计ADC进程
+	xTaskCreate((TaskFunction_t)ADC_Task,
+			(const char *)"ADC_Task",
+			(uint16_t)128,
+			(void *)NULL,
+			(UBaseType_t)0,
+			(TaskHandle_t *)&ADC_Task_Handler);
+#endif
 	//云台归中进程
 	xTaskCreate((TaskFunction_t)PTZ_Init_task,
 				(const char *)"PTZ_Init_task",
@@ -38,13 +59,13 @@ void StartTask(void)
 				(UBaseType_t)1,
 				(TaskHandle_t *)&PTZ_Init_Handler);
 
-//	//裁判系统进程
-//	xTaskCreate((TaskFunction_t)referee_system_task,
-//				(const char *)"referee_system_task",
-//				(uint16_t)256,
-//				(void *)NULL,
-//				(UBaseType_t)1,
-//				(TaskHandle_t *)&referee_system_Handler);
+	//裁判系统进程
+	xTaskCreate((TaskFunction_t)referee_system_task,
+				(const char *)"referee_system_task",
+				(uint16_t)256,
+				(void *)NULL,
+				(UBaseType_t)1,
+				(TaskHandle_t *)&referee_system_Handler);
 }
 
 /*云台归中进程*/
@@ -82,14 +103,15 @@ void PTZ_Init_task(void *pvParameters)
 
 		GM3510_buff[0] = -GM3510_1_SpeedPID.pid_out;
 		GM3510_buff[1] = -GM3510_2_SpeedPID.pid_out;
+		GM3510_buff[1] = 0;
 
 #if TEST == 0
 		GM3510_CAN_Send(GM3510_buff);
 #endif
 		time++;
-		if (time == 3000)
+		if (time == 2000)
 		{
-			//6s后启动MPU进程
+			//4s后启动MPU进程
 			xTaskCreate((TaskFunction_t)IMU_task,
 						(const char *)"IMU_task",
 						(uint16_t)512,
@@ -134,14 +156,14 @@ void IMU_task(void *pvParameters)
 				(const char *)"PID_task",
 				(uint16_t)256,
 				(void *)NULL,
-				(UBaseType_t)1,
+				(UBaseType_t)3,
 				(TaskHandle_t *)&PID_task_Handler);
 				
 	xTaskCreate((TaskFunction_t)PID_task2,
 				(const char *)"PID_task2",
 				(uint16_t)256,
 				(void *)NULL,
-				(UBaseType_t)1,
+				(UBaseType_t)2,
 				(TaskHandle_t *)&PID_task2_Handler);
 	for (;;)
 	{
@@ -202,27 +224,30 @@ void PID_task(void *pvParameters)
 		PID_Control(imu.kalman_yaw, GM3510_Ref.x, &GM3510_1_AnglePID);
 		limit(GM3510_1_AnglePID.pid_out, 600, -600);
 		PID_Control(-imu.wz, GM3510_1_AnglePID.pid_out, &GM3510_1_SpeedPID);
-		limit(GM3510_1_SpeedPID.pid_out, 5000, -5000);
+		limit(GM3510_1_SpeedPID.pid_out, 29000, -29000);
 
+
+		//GM3510_Actual.PTZ_Motor_Actual_Angle_2 = PID_diff_convert(GM3510_Actual.PTZ_Motor_Actual_Angle_2,&Diff_P);
 		PID_Control(GM3510_Actual.PTZ_Motor_Actual_Angle_2, GM3510_Ref.y, &GM3510_2_AnglePID);
 		limit(GM3510_2_AnglePID.pid_out, 600, -600);
+		
 		PID_Control(-imu.wx, GM3510_2_AnglePID.pid_out, &GM3510_2_SpeedPID);
 		limit(GM3510_2_SpeedPID.pid_out, 5000, -5000);
 		
 		GM3510_buff[0] = GM3510_1_SpeedPID.pid_out;
 		GM3510_buff[1] = -GM3510_2_SpeedPID.pid_out;
 		GM3510_buff[2] = Pluck_motor_SpeedPID.pid_out;
-
+		GM3510_buff[1] = 0;
 #if TEST == 0
-		taskENTER_CRITICAL();
 		GM3510_CAN_Send(GM3510_buff);
-		taskEXIT_CRITICAL();
 #endif
 
 		vTaskDelayUntil(&xLastWakeTime, 2);
 	}
 }
 
+
+uint8_t SC_flag;
 TaskHandle_t PID_task2_Handler;
 void PID_task2(void *pvParameters)
 {
@@ -230,6 +255,18 @@ void PID_task2(void *pvParameters)
 	
 	int16_t RM3510_buff[4] = {0,0,0,0};
 	Chassis_Speed_Ref_Init();
+	
+#if CHASSIS_FEEDBACK != 0
+	float Current_Motor14 = 0;
+	float Current_Motor23 = 0;
+	float Current_Motor1234 = 0;
+	int expect_sum = 0;
+	float bili = 0;
+	float current_expect=0;
+	float power_expect=0;
+	float Last_expect=0;
+	float power_current=0;
+#endif
 	
 	float Twistvalue = 0;
 	float Twistadd = 0;
@@ -273,18 +310,74 @@ void PID_task2(void *pvParameters)
 					&RM3510_4_PID);
 		limit(RM3510_4_PID.pid_out, 23767, -23767);
 		
-		RM3510_buff[0] = -RM3510_1_PID.pid_out;
-		RM3510_buff[1] = -RM3510_2_PID.pid_out;
-		RM3510_buff[2] = -RM3510_3_PID.pid_out;
-		RM3510_buff[3] = -RM3510_4_PID.pid_out;
+		
+#if CHASSIS_FEEDBACK==1||CHASSIS_FEEDBACK==2   //用裁判系统或者电流计做底盘功率闭环			
+				Current_Motor14=__fabs(RM3510_1_PID.pid_out) + __fabs(RM3510_2_PID.pid_out);
+				Current_Motor23=__fabs(RM3510_3_PID.pid_out) + __fabs(RM3510_4_PID.pid_out);
+				Current_Motor1234=Current_Motor14+Current_Motor23;
+				if( Current_Motor1234<= 20)
+					expect_sum = 0;
+				else
+					expect_sum = Current_Motor1234; //计算四个电机的电流总和
+//				if(__fabs(RM3510_PID_Expect.Chassis_Motor_PID_Expect_1)>7000||__fabs(RM3510_PID_Expect.Chassis_Motor_PID_Expect_2)>7000
+//				    ||__fabs(RM3510_PID_Expect.Chassis_Motor_PID_Expect_3)>7000||__fabs(RM3510_PID_Expect.Chassis_Motor_PID_Expect_4)>7000)
+//				{
+//					power_start=50;
+//				}
+//				else
+//				{
+//					power_start=70;
+//				}
+//				if(Twist == 1) //扭腰
+//				{
+//					power_start=40;
+//				}
+
+#if CHASSIS_FEEDBACK==1						  	       //用裁判系统做闭环	
+				if(ext_power_heat_data.chassis_power >= power_start)//当功率大于70W的时候开始进行功率限制
+				{
+					power_expect=PID_Increment(PowerHeatData.chassisPower,POWER_LIMIT_VALUE,&Power_limit);//计算功率的期望值
+					if(power_expect>POWER_LIMIT_UP)                                           //功率限幅
+					{
+						power_expect=POWER_LIMIT_UP;
+					}
+					current_expect=power_expect/PowerHeatData.chassisVolt;//计算电流期望值，单位为A
+
+
+#elif	CHASSIS_FEEDBACK==2							        //用电流计做闭环
+				power_current=(ADC_Current/1000) * POWER_VOLTAGE;           //计算功率的期望值
+				if(power_current>60)          //当功率大于70W的时候开始进行功率限制
+				{
+					power_expect = Last_expect + PID_Increment(power_current,POWER_LIMIT_VALUE,&Power_limit);	//计算功率的期望值
+					if(power_expect<0)power_expect=20; 
+					limit(power_expect,POWER_LIMIT_UP,0);
+					current_expect=power_expect/POWER_VOLTAGE;             //计算电流期望值，单位为A		
+					Last_expect=power_expect;
+
+#endif
+					if(power_expect<0.01f)bili=0;
+					else bili = (current_expect * CURRENT_OFFSET / (expect_sum+50));
+					
+					if(SC_flag == 0)
+					{
+						RM3510_1_PID.pid_out *= bili; //按比例分配给底盘电机
+						RM3510_2_PID.pid_out *= bili;
+						RM3510_3_PID.pid_out *= bili;
+						RM3510_4_PID.pid_out *= bili;
+					}
+				}
+
+#endif
+		RM3510_buff[0] = (int16_t)-RM3510_1_PID.pid_out;
+		RM3510_buff[1] = (int16_t)-RM3510_2_PID.pid_out;
+		RM3510_buff[2] = (int16_t)-RM3510_3_PID.pid_out;
+		RM3510_buff[3] = (int16_t)-RM3510_4_PID.pid_out;
 		
 #if TEST == 0
-		taskENTER_CRITICAL();
 		RM3510_CAN_Send(RM3510_buff);
-		taskEXIT_CRITICAL();
 #endif
 		
-		vTaskDelayUntil(&xLastWakeTime, 5);
+		vTaskDelayUntil(&xLastWakeTime, 2);
 	}
 }
 
@@ -306,6 +399,32 @@ void Remote_task(void *pvParameters)
 		{
 			vTaskDelay(10);
 		}
+	}
+}
+
+/*ADC进程*/
+TaskHandle_t ADC_Task_Handler;
+float ADC_Current = 0;
+float ADC_Aoltage = 0;
+void ADC_Task(void *pvParameters)
+{
+	portTickType xLastWakeTime;
+	
+	float ADC_Value = 0;
+	uint16_t ADC_AverageBuff[10] = {0,0,0,0,0,0,0,0,0,0};
+	
+	for(uint8_t i = 0;i<10;i++)
+		Average(ADC_AverageBuff,Get_Adc(ADC_CHANNEL_11));
+	
+	for(;;)
+	{
+		//ADC_Value = Average(ADC_AverageBuff,Get_Adc(ADC_CHANNEL_11));
+		ADC_Value = Get_Adc(ADC_CHANNEL_11);
+		ADC_Aoltage = ADC_Value * 0.8057f;
+		
+		ADC_Current = fabsf(ADC_Aoltage - 2540)*10;
+		
+		vTaskDelayUntil(&xLastWakeTime,1);
 	}
 }
 
@@ -348,6 +467,6 @@ void referee_system_task(void *pvParameters)
 			}
 		}
 		else
-			vTaskDelay(10);
+			vTaskDelay(5);
 	}
 }

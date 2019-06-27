@@ -62,6 +62,8 @@
 extern CAN_HandleTypeDef hcan1;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_usart6_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim14;
@@ -303,6 +305,20 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA2 stream1 global interrupt.
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA2 stream2 global interrupt.
   */
 void DMA2_Stream2_IRQHandler(void)
@@ -314,6 +330,20 @@ void DMA2_Stream2_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
   /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream6 global interrupt.
+  */
+void DMA2_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_tx);
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
@@ -350,10 +380,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 			case 0x205:
 				GM3510_Actual.PTZ_Motor_Actual_Angle_1 = GM3510_Feedback(can1_Receive_buf);
-				if(GM3510_Actual.PTZ_Motor_Actual_Angle_1<2000)GM3510_Actual.PTZ_Motor_Actual_Angle_1 += 8191;
+				if(GM3510_Actual.PTZ_Motor_Actual_Angle_1 < 2000)GM3510_Actual.PTZ_Motor_Actual_Angle_1 += 8191;
 				break;
 			case 0x206:
 				GM3510_Actual.PTZ_Motor_Actual_Angle_2 = GM3510_Feedback(can1_Receive_buf);
+				if(GM3510_Actual.PTZ_Motor_Actual_Angle_2 > 6000)GM3510_Actual.PTZ_Motor_Actual_Angle_2 = 0;
 				break;
 			case 0x207:
 				RM2006_Feedback(can1_Receive_buf, &Pluck_motor_Actual_Speed, &Pluck_motor_Actual_Rand);
@@ -361,5 +392,25 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
   }
 }
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART6)
+	{
+		HAL_UART_DMAStop(&huart6);
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART6)
+	{
+		HAL_UART_Receive_DMA(&huart6,usart6_dma_buff,8);
+		
+		
+		
+	}
+}
+
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

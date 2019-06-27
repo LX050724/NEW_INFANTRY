@@ -13,7 +13,10 @@ int16_t FB_SD, RL_SD;
 uint8_t Twist = 0;
 
 static InputMode_e inputmode = REMOTE_INPUT; //输入模式设定
+uint16_t power;
 RC_Ctl_t RC_CtrlData = {.rc = {1024,1024,1024,1024,3,1}};												 //remote control data
+
+uint8_t C_Data[8] = {0xaa,0,0,0,0,0,0,0x55};
 
 //输入模式设置
 void SetInputMode(Remote *rc)
@@ -43,8 +46,41 @@ void MouseKeyControlProcess(Mouse *mouse, Key *key)
 	static uint16_t forward_back_speed = 0;
 	static uint16_t left_right_speed = 0;
 
-	forward_back_speed = 5300;
-	left_right_speed = 5300;
+		///扭腰E//////////////////////////////////////////////////////////////
+	static uint8_t Key_E_falg = 0;
+	if(key->v & Key_E)
+	{
+		if(Key_E_falg == 0)
+		{
+			Key_E_falg = 1;
+			if(Twist == 0)Twist = 1;
+			else Twist = 0;
+		}
+	}else Key_E_falg = 0;
+	
+	///超级电容///////////////////////////////////////////////////////////
+	if(key->v & Key_Shift)
+	{
+		C_Data[3] = 0xff;
+		SC_flag = 1;
+		forward_back_speed = 8000;
+		left_right_speed = 8000;
+	}
+	else
+	{
+		C_Data[3] = 0;
+		SC_flag = 0;
+		forward_back_speed = 5300;
+		left_right_speed = 5300;
+	}
+	power = (ADC_Current/1000)*24;
+	C_Data[4] = power >> 8;
+	C_Data[5] = power;
+	
+	taskENTER_CRITICAL();
+	HAL_UART_Transmit(&huart6,C_Data,8,10);
+	taskEXIT_CRITICAL();
+	
 	//方向控制///////////////////////////////////////////////////////////
 	if (key->v & 0x01) // key: w   前进
 	{
@@ -92,10 +128,8 @@ void MouseKeyControlProcess(Mouse *mouse, Key *key)
 		}
 
 		Chassis_Speed_Ref.left_right_ref = left_right_speed * Slope(70000, ramp);
-		//			RL_SD = Chassis_Speed_Ref.left_right_ref ;
 
 		rr_flag = 0;
-		//			printf("d\r\n");
 	}
 	else if (key->v & 0x04) //key: a 左移
 	{
@@ -110,7 +144,6 @@ void MouseKeyControlProcess(Mouse *mouse, Key *key)
 		Chassis_Speed_Ref.left_right_ref = -left_right_speed * Slope(70000, ramp);
 		RL_SD = Chassis_Speed_Ref.left_right_ref;
 		RL_flag = 0;
-		//			printf("a\r\n");
 	}
 	else
 	{
@@ -183,17 +216,7 @@ void MouseKeyControlProcess(Mouse *mouse, Key *key)
 		GM3510_Ref.y += mouse->y* MOUSE_TO_PITCH_ANGLE_INC_FACT;
 	///其他控制///////////////////////////////////////////////////////////
 	
-	///扭腰E//////////////////////////////////////////////////////////////
-	static uint8_t Key_E_falg = 0;
-	if(key->v & Key_E)
-	{
-		if(Key_E_falg == 0)
-		{
-			Key_E_falg = 1;
-			if(Twist == 0)Twist = 1;
-			else Twist = 0;
-		}
-	}else Key_E_falg = 0;
+
 	
 }
 /*遥控器控制函数*/
@@ -318,11 +341,6 @@ void Remote_Rx(unsigned char *RxMsg)
 		HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
 		PID_DeInit();
-		vTaskDelete(&PID_task_Handler);
-		vTaskDelete(&PID_task2_Handler);
-		RM3510_CAN_Send(can_stop);
-		vTaskDelay(5);
-		GM3510_CAN_Send(can_stop);
 	}
 	break;
 	}

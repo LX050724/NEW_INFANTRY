@@ -21,6 +21,7 @@
 #include "ramp.h"
 #include "remote.h"
 #include "referee_system.h"
+#include "adc.h"
 
 void StartTask(void);
 
@@ -34,12 +35,17 @@ void IMU_task(void *pvParameters);
 extern TaskHandle_t PID_task_Handler;
 void PID_task(void *pvParameters);
 
+extern uint8_t SC_flag;
 extern TaskHandle_t PID_task2_Handler;
 void PID_task2(void *pvParameters);
 
 extern SemaphoreHandle_t Remote_Semaphore;
 extern TaskHandle_t Remote_task_Handler;
 void Remote_task(void *pvParameters);
+
+extern TaskHandle_t ADC_Task_Handler;
+extern float ADC_Current;
+void ADC_Task(void *pvParameters);
 
 extern xQueueHandle referee_system_Queue;
 extern TaskHandle_t referee_system_Handler;
